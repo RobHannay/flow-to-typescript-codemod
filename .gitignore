@@ -16,3 +16,4 @@ src/test/test-files/*.tsx
 *.tsbuildinfo
 
 coverage/
+/.yarn/
