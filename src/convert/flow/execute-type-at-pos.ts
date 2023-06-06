@@ -9,7 +9,7 @@ export async function executeFlowTypeAtPos(
   location: t.SourceLocation
 ): Promise<string> {
   const { line, column } = location.start;
-  const command = `$(yarn bin)/flow type-at-pos "${filePath}" ${line} ${
+  const command = `yarn exec flow type-at-pos "${filePath}" ${line} ${
     column + 1
   } --json --from "typescriptify" --quiet`;
 

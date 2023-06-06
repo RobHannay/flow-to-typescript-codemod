@@ -247,7 +247,7 @@ export function transformDeclarations({
             node.typeAnnotation = null;
             return migrateType(reporter, state, originalType);
           } else {
-            return t.tsAnyKeyword();
+            return t.tsUnknownKeyword();
           }
         });
 
@@ -279,7 +279,7 @@ export function transformDeclarations({
               t.identifier("Record"),
               t.tsTypeParameterInstantiation([
                 t.tsStringKeyword(),
-                t.tsAnyKeyword(),
+                t.tsUnknownKeyword(),
               ])
             )
           );
@@ -289,7 +289,7 @@ export function transformDeclarations({
           // TypeScript can’t infer the type of an unannotated variable unlike Flow. We accept
           // lower levels of soundness in test files. We’ll manually annotate non-test files.
           if (path.node.init === null) {
-            path.node.id.typeAnnotation = t.tsTypeAnnotation(t.tsAnyKeyword());
+            path.node.id.typeAnnotation = t.tsTypeAnnotation(t.tsUnknownKeyword());
           } else if (
             path.node.init?.type === "ArrayExpression" &&
             path.node.init.elements.length === 0
@@ -297,7 +297,7 @@ export function transformDeclarations({
             path.node.id.typeAnnotation = t.tsTypeAnnotation(
               t.tsTypeReference(
                 t.identifier("Array"),
-                t.tsTypeParameterInstantiation([t.tsAnyKeyword()])
+                t.tsTypeParameterInstantiation([t.tsUnknownKeyword()])
               )
             );
           }
@@ -327,7 +327,7 @@ export function transformDeclarations({
                   // treat it as such.
                   const tsType =
                     flowType.type === "EmptyTypeAnnotation"
-                      ? t.tsAnyKeyword()
+                      ? t.tsUnknownKeyword()
                       : migrateType(reporter, state, flowType);
 
                   // Typescript loses the type check on L#299 here, so we're just putting it back.
@@ -408,7 +408,7 @@ export function transformDeclarations({
             getLoc(path.node)
           );
           path.node.init.typeParameters = t.tsTypeParameterInstantiation([
-            t.tsAnyKeyword(),
+            t.tsUnknownKeyword(),
           ]);
         }
       }
@@ -434,7 +434,7 @@ export function transformDeclarations({
         node.param = buildTSIdentifier(
           param.name,
           false,
-          t.tsTypeAnnotation(t.tsAnyKeyword())
+          t.tsTypeAnnotation(t.tsUnknownKeyword())
         );
       }
     },

@@ -40,7 +40,7 @@ export const functionVisitor = <
       for (const param of path.node.params) {
         if (!(param as t.Identifier).typeAnnotation) {
           (param as t.Identifier).typeAnnotation = t.tsTypeAnnotation(
-            t.tsAnyKeyword()
+            t.tsUnknownKeyword()
           );
         }
       }

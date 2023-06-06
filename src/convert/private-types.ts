@@ -32,7 +32,7 @@ export function transformPrivateTypes({
           reporter
         );
       } else if (privateFlowType && isTypeAnnotation) {
-        // Using t.tsAnyKeyword() here eventually collides w/ another transformer that makes this "unknown"
+        // Using t.tsUnknownKeyword() here eventually collides w/ another transformer that makes this "unknown"
         replaceWith(path, t.identifier("any"), state.config.filePath, reporter);
       }
     },

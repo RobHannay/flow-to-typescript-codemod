@@ -18,13 +18,16 @@ export class ConfigurableTypeProvider {
 
   public get flowAnyObjectType(): t.TSType {
     if (this.useStrictAnyObjectType) {
-      // Record<any, any>
+      // Record<string, unknown>
       return t.tsTypeReference(
         t.identifier("Record"),
-        t.tsTypeParameterInstantiation([t.tsAnyKeyword(), t.tsAnyKeyword()])
+        t.tsTypeParameterInstantiation([
+          t.tsStringKeyword(),
+          t.tsUnknownKeyword(),
+        ])
       );
     } else {
-      return t.tsAnyKeyword();
+      return t.tsUnknownKeyword();
     }
   }
 
@@ -32,7 +35,7 @@ export class ConfigurableTypeProvider {
     if (this.useStrictAnyFunctionType) {
       return t.tsTypeReference(t.identifier("Function"));
     } else {
-      return t.tsAnyKeyword();
+      return t.tsUnknownKeyword();
     }
   }
 }

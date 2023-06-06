@@ -46,7 +46,7 @@ function actuallyMigrateType(
 ): t.TSType {
   switch (flowType.type) {
     case "AnyTypeAnnotation":
-      return t.tsAnyKeyword();
+      return t.tsUnknownKeyword();
 
     case "ArrayTypeAnnotation":
       return t.tsArrayType(migrateType(reporter, state, flowType.elementType));
@@ -67,7 +67,7 @@ function actuallyMigrateType(
         state.config.filePath,
         flowType.loc as t.SourceLocation
       );
-      return t.tsAnyKeyword();
+      return t.tsUnknownKeyword();
 
     case "FunctionTypeAnnotation": {
       const typeParams = flowType.typeParameters
@@ -266,7 +266,7 @@ function actuallyMigrateType(
           state.config.filePath,
           id.loc as t.SourceLocation
         );
-        return t.tsAnyKeyword();
+        return t.tsUnknownKeyword();
       }
 
       // `$PropertyType<T, K>` → `T[K]`
@@ -460,7 +460,7 @@ function actuallyMigrateType(
             // These are just test functions so return the default if fetching the member expression fails for whatever reason
             return t.tsTypeReference(
               t.identifier("jest.MockedFunction"),
-              t.tsTypeParameterInstantiation([t.tsAnyKeyword()])
+              t.tsTypeParameterInstantiation([t.tsUnknownKeyword()])
             );
           }
 
@@ -487,13 +487,13 @@ function actuallyMigrateType(
             // These are just test functions so return the default if fetching the member expression fails for whatever reason
             return t.tsTypeReference(
               t.identifier("jest.MockedFunction"),
-              t.tsTypeParameterInstantiation([t.tsAnyKeyword()])
+              t.tsTypeParameterInstantiation([t.tsUnknownKeyword()])
             );
           }
         } else {
           return t.tsTypeReference(
             t.identifier("jest.MockedFunction"),
-            t.tsTypeParameterInstantiation([t.tsAnyKeyword()])
+            t.tsTypeParameterInstantiation([t.tsUnknownKeyword()])
           );
         }
       }
@@ -510,7 +510,7 @@ function actuallyMigrateType(
         );
         return id.right.name.startsWith("HTML")
           ? t.tsTypeReference(t.identifier(id.right.name))
-          : t.tsAnyKeyword();
+          : t.tsUnknownKeyword();
       }
 
       // `React.Node` → `React.ReactElement`
@@ -660,13 +660,13 @@ function actuallyMigrateType(
         // @ts-expect-error typeName only from recast
         const { typeName } = firstParam;
         if (
-          firstParam.type === "TSAnyKeyword" ||
+          firstParam.type === "TSUnknownKeyword" ||
           (firstParam.type === "TSTypeReference" &&
             typeName.type === "TSQualifiedName" &&
             typeName.left.type === "Identifier" &&
             typeName.left.name === "Flow" &&
             typeName.right.type === "Identifier" &&
-            typeName.right.name === "TSAnyKeyword")
+            typeName.right.name === "TSUnknownKeyword")
         ) {
           return t.tsTypeReference(
             t.tsQualifiedName(
@@ -765,7 +765,7 @@ function actuallyMigrateType(
       return t.tsUnionType([
         migrateType(reporter, state, flowType.typeAnnotation),
         t.tsNullKeyword(),
-        t.tsUndefinedKeyword(),
+        // t.tsUndefinedKeyword(),
       ]);
     }
 
@@ -789,14 +789,17 @@ function actuallyMigrateType(
 
       // class A<P = {}> {} -> class A<P = any> {}
       if (metaData?.isTypeParameter) {
-        return t.tsAnyKeyword();
+        return t.tsUnknownKeyword();
       }
 
       // function f(): {} {} -> function f(): Record<string, any> {}
       if (flowMembers.length === 0 && !metaData?.isInterfaceBody) {
         return t.tsTypeReference(
           t.identifier("Record"),
-          t.tsTypeParameterInstantiation([t.tsAnyKeyword(), t.tsAnyKeyword()])
+          t.tsTypeParameterInstantiation([
+            t.tsUnknownKeyword(),
+            t.tsUnknownKeyword(),
+          ])
         );
       }
 
@@ -924,7 +927,10 @@ function actuallyMigrateType(
 
           // If one of the union members is `any` then flatten out the union to just that.
           // This happens fairly frequently for types coming from `flowTypeAtPos()`.
-          if (anyMemberIndex !== null && tsMemberType.type === "TSAnyKeyword") {
+          if (
+            anyMemberIndex !== null &&
+            tsMemberType.type === "TSUnknownKeyword"
+          ) {
             anyMemberIndex = i;
           }
 

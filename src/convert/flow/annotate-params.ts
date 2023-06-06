@@ -90,7 +90,7 @@ export function annotateParamsWithFlowTypeAtPos(
           // treat it as such.
           const tsType =
             flowType.type === "EmptyTypeAnnotation"
-              ? t.tsAnyKeyword()
+              ? t.tsUnknownKeyword()
               : migrateType(reporter, state, flowType);
 
           // Add the type annotation! Yaay.

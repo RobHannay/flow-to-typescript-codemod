@@ -209,7 +209,7 @@ export function transformExpressions({
             path.node.typeParameters = t.tsTypeParameterInstantiation([
               t.tsTypeReference(
                 t.identifier("Array"),
-                t.tsTypeParameterInstantiation([t.tsAnyKeyword()])
+                t.tsTypeParameterInstantiation([t.tsUnknownKeyword()])
               ),
             ]);
           } else if (
@@ -221,7 +221,7 @@ export function transformExpressions({
                 t.identifier("Record"),
                 t.tsTypeParameterInstantiation([
                   t.tsStringKeyword(),
-                  t.tsAnyKeyword(),
+                  t.tsUnknownKeyword(),
                 ])
               ),
             ]);
