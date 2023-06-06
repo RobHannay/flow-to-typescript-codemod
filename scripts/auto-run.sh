@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+# You're need to set the references to `../web-clone/web` to be whatever path you have
+
 files=(../web-clone/web/blink/constants/*.js)
 total=${#files[@]}
 index=0
@@ -11,7 +13,7 @@ for file in "${files[@]}"; do
   echo "Current success: $successful"
   cp "$file" "$file.bak"
   echo "🔧 Converting $file to TS"
-  yarn typescriptify convert -p "$file" --write --delete --useStrictAnyObjectType --useStrictAnyFunctionType --convertUnannotated --disableFlow
+  yarn typescriptify convert -p "$file" --write --delete --useStrictAnyObjectType --useStrictAnyFunctionType --convertUnannotated
   yarn typescriptify fix -p "$file" --tsProps --autoImport
 
   fileName=${file%.*}
