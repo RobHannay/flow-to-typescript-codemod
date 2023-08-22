@@ -2,7 +2,16 @@
 
 # You're need to set the references to `../web-clone/web` to be whatever path you have
 
-files=(../web-clone/web/blink/components/**/*.js)
+repoPath="../web-clone-2/web"
+
+echo "🗃️ Finding files in $repoPath"
+
+setopt extended_glob
+#negation eg
+# files=(../web-clone/web/blink/^components/**/*.js)
+#files=(../web-clone/web/blink/^{components,hooks}/**/*.js)
+files=("$repoPath"/webapp/src/components/**/*.js)
+#files=(../web-clone/web/webapp/src/components/**/*.js)
 total=${#files[@]}
 index=0
 successful=0
@@ -66,13 +75,12 @@ for file in "${files[@]}"; do
   # -------- End of package.json stuff ------------
 
 
-  echo "✅ Checking validity..."
-
-  fileFromRoot=$(echo "$tsFileName" | sed 's/\.\.\/web-clone\/web\//.\//g')
+  echo "✅ Checking validity. Linting..."
 
   # Replace "../web-clone/web/" with "./"
+  fileFromRoot=$(echo "$tsFileName" | sed "s%$repoPath%.%")
 
-  if pnpm -C ../web-clone/web/ exec eslint --fix "$fileFromRoot" && pnpm -C ../web-clone/web/ apps:build:staging; then
+  if pnpm -C "$repoPath" exec eslint --fix "$fileFromRoot" && echo "💅 Linted. Building..." && pnpm -C "$repoPath" exec cross-env PROJECT=apps PORT=8082 PIPELINE=development NODE_ENV=development node tools/build/build; then
     echo "🎉 Successfully converted ${file}. Removing backup."
     rm "$file.bak"
     if [ -f "$dir_path/package.json.bak" ]; then
@@ -93,7 +101,7 @@ for file in "${files[@]}"; do
 
     if [ -f "$tsFileName.snap" ]; then
       echo "📸️ Found auto-migrated snapshot file too"
-      rm "$tsFileName.snap"
+      mv "$tsFileName.snap" "$file.snap"
     fi
   fi
 
