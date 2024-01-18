@@ -2,16 +2,18 @@
 
 # You're need to set the references to `../web-clone/web` to be whatever path you have
 
-repoPath="../web-clone-2/web"
+repoPath="../web-clone/web"
 
 echo "🗃️ Finding files in $repoPath"
 
 setopt extended_glob
 #negation eg
 # files=(../web-clone/web/blink/^components/**/*.js)
-#files=(../web-clone/web/blink/^{components,hooks}/**/*.js)
-files=("$repoPath"/webapp/src/components/**/*.js)
 #files=(../web-clone/web/webapp/src/components/**/*.js)
+#files=("$repoPath"/apps/src/**/*.js)
+#files=("$repoPath"/apps/src/components/Test/Test.test.js)
+#files=("$repoPath"/dashboard/src/^{components,reducers,selectors,utils}/**/*.js)
+files=("$repoPath"/blink/**/*.js)
 total=${#files[@]}
 index=0
 successful=0
@@ -80,7 +82,7 @@ for file in "${files[@]}"; do
   # Replace "../web-clone/web/" with "./"
   fileFromRoot=$(echo "$tsFileName" | sed "s%$repoPath%.%")
 
-  if pnpm -C "$repoPath" exec eslint --fix "$fileFromRoot" && echo "💅 Linted. Building..." && pnpm -C "$repoPath" exec cross-env PROJECT=apps PORT=8082 PIPELINE=development NODE_ENV=development node tools/build/build; then
+  if pnpm -C "$repoPath" exec eslint --fix "$fileFromRoot" && echo "💅 Linted. Building..." && pnpm -C "$repoPath" exec cross-env PROJECT=apps PORT=8082 PIPELINE=development NODE_ENV=development node tools/build/build --release; then
     echo "🎉 Successfully converted ${file}. Removing backup."
     rm "$file.bak"
     if [ -f "$dir_path/package.json.bak" ]; then
@@ -99,9 +101,19 @@ for file in "${files[@]}"; do
       mv "$dir_path/package.json.bak" "$dir_path/package.json"
     fi
 
-    if [ -f "$tsFileName.snap" ]; then
+    # -- Revert Snapshot files if necessary ---
+    DIR_PATH=${tsFileName:h}
+    TS_FILE_NAME=${tsFileName:t}
+    JS_FILE_NAME=${file:t}
+
+    # Build the snapshot file path
+    TS_SNAPSHOT_FILE_PATH="${DIR_PATH}/__snapshots__/${TS_FILE_NAME}.snap"
+    JS_SNAPSHOT_FILE_PATH="${DIR_PATH}/__snapshots__/${JS_FILE_NAME}.snap"
+
+    echo "looking for $TS_SNAPSHOT_FILE_PATH"
+    if [ -f "$TS_SNAPSHOT_FILE_PATH" ]; then
       echo "📸️ Found auto-migrated snapshot file too"
-      mv "$tsFileName.snap" "$file.snap"
+      mv "$TS_SNAPSHOT_FILE_PATH" "$JS_SNAPSHOT_FILE_PATH"
     fi
   fi
 
