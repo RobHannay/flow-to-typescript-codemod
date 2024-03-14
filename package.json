@@ -18,11 +18,13 @@
   "scripts": {
     "build": "./esBuild.js",
     "dev": "yarn build && node ./dist/index.js",
-    "typescriptify": "yarn build && node ./dist/index.js",
+    "typescriptify": "node ./dist/index.js",
     "lint": "eslint --ext ts src",
     "prepare": "yarn patch-package",
     "prettier": "prettier --write 'src/**/*.{js,jsx,mdx,ts,tsx}' !src/test/test_files/*.{js,jsx,ts,tsx}",
     "test": "jest",
+    "convert": "yarn typescriptify convert --write --delete --useStrictAnyObjectType --useStrictAnyFunctionType --convertUnannotated",
+    "convertFix": "yarn typescriptify fix --tsProps --autoImport",
     "types": "tsc -b ."
   },
   "resolutions": {

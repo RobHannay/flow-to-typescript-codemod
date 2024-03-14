@@ -1,4 +1,14 @@
+# Modifications
 
+This is a fork of the original `flow-to-typescript-codemod`. 
+
+- Building is split from the primary `typescriptify` command, to save time in long-running scripts.
+- New scripts are added to the `package.json` to set some default CLI args for use in other projects.
+  - `convert` does the conversion.
+  - `convertFix` fixes types that it can.
+- `unknown`s are preferred over `any`s in some cases.
+
+---
 
 <div align="center">
   <img

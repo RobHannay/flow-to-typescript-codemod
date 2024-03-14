@@ -82,7 +82,7 @@ for file in "${files[@]}"; do
   # Replace "../web-clone/web/" with "./"
   fileFromRoot=$(echo "$tsFileName" | sed "s%$repoPath%.%")
 
-  if pnpm -C "$repoPath" exec eslint --fix "$fileFromRoot" && echo "💅 Linted. Building..." && pnpm -C "$repoPath" exec cross-env PROJECT=apps PORT=8082 PIPELINE=development NODE_ENV=development node tools/build/build --release; then
+  if pnpm -C "$repoPath" exec eslint --fix "$fileFromRoot" && echo "💅 Linted. Building..." && pnpm -C "$repoPath" PROJECT=nodeServices rsbuild build; then
     echo "🎉 Successfully converted ${file}. Removing backup."
     rm "$file.bak"
     if [ -f "$dir_path/package.json.bak" ]; then
