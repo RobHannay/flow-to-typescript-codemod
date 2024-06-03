@@ -9,11 +9,27 @@ echo "🗃️ Finding files in $repoPath"
 setopt extended_glob
 #negation eg
 # files=(../web-clone/web/blink/^components/**/*.js)
-#files=(../web-clone/web/webapp/src/components/**/*.js)
-#files=("$repoPath"/apps/src/**/*.js)
-#files=("$repoPath"/apps/src/components/Test/Test.test.js)
-#files=("$repoPath"/dashboard/src/^{components,reducers,selectors,utils}/**/*.js)
-files=("$repoPath"/blink/**/*.js)
+#jsFilesInDir=(../web-clone/web/webapp/src/components/**/*.js)
+#jsFilesInDir=("$repoPath"/apps/src/components/Test/Test.test.js)
+#jsFilesInDir=("$repoPath"/dashboard/src/^{components,reducers,selectors,utils}/**/*.js)
+#jsFilesInDir=("$repoPath"/webapp/src/**/*.js)
+
+
+jsFilesInDir=("$repoPath"/blink/**/*.js)
+
+# Optionally, add a path here to restart the script from a specific point.
+# This is useful if the script fails and you want to restart from a specific file.
+# e.g. restartPoint=("$repoPath"/webapp/src/components/)
+restartPoint=("$repoPath"/)
+
+# Filter `jsFilesInDir` to those that only include the @flow Pragma
+files=()
+for file in $jsFilesInDir; do
+  if grep -q '@flow' "$file" && [[ $file > $restartPoint ]]; then
+    files+=($file)
+  fi
+done
+
 total=${#files[@]}
 index=0
 successful=0
@@ -33,46 +49,48 @@ for file in "${files[@]}"; do
   elif test -f "$fileName.tsx"; then
     tsFileName="$fileName.tsx"
   else
-    echo "🚨 No $fileName.ts/tsx file found"
-    break
+    echo "🚨 No $fileName.ts/tsx file found. Conversion must have failed. Restoring backup."
+    mv "$file.bak" "$file"
+    continue
   fi
 
-  echo "🔎 Found $tsFileName file. Checking for co-located package.json"
+  echo "🔎 Found $tsFileName file."
 
   # ------------ Check for `package.json` existence ----------------
 
   # Extract the directory path and file name from the JavaScript file path
-  dir_path=$(dirname "$file")
-  file_name=$(basename "$file")
+#  dir_path=$(dirname "$file")
+#  file_name=$(basename "$file")
 
-  # Check if package.json exists in the same directory
-  if [ -f "$dir_path/package.json" ]; then
-      echo "📦 package.json exists"
-      # Extract the "main" field from package.json
-      main_field=$(jq -r '.main' "$dir_path/package.json")
-
-      # Get the base name of the "main" field
-      main_file_name=$(basename "$main_field")
-
-      echo "main file $main_file_name vs converted file $file_name"
-
-      # Compare the extracted main file name with the provided JavaScript file name
-      if [ "$main_file_name" = "$file_name" ]; then
-          echo "📦 package.json matches!"
-          # Replace the file extension with the TS file name
-          new_main_field=$(basename "$tsFileName")
-
-          # Rename the JavaScript file to the new TypeScript file
-          jq --arg new_main "$new_main_field" '.main = $new_main' "$dir_path/package.json" > tmp_package.json
-          mv "$dir_path/package.json" "$dir_path/package.json.bak"
-          mv tmp_package.json "$dir_path/package.json"
-          echo "Updated the 'main' field in package.json to $new_main_field"
-      else
-          echo "Main field in package.json doesn't match the provided JavaScript file."
-      fi
-  else
-      echo "No package.json found in the same directory."
-  fi
+#  # Check if package.json exists in the same directory
+#  echo "Checking for co-located package.json"
+#  if [ -f "$dir_path/package.json" ]; then
+#      echo "📦 package.json exists"
+#      # Extract the "main" field from package.json
+#      main_field=$(jq -r '.main' "$dir_path/package.json")
+#
+#      # Get the base name of the "main" field
+#      main_file_name=$(basename "$main_field")
+#
+#      echo "main file $main_file_name vs converted file $file_name"
+#
+#      # Compare the extracted main file name with the provided JavaScript file name
+#      if [ "$main_file_name" = "$file_name" ]; then
+#          echo "📦 package.json matches!"
+#          # Replace the file extension with the TS file name
+#          new_main_field=$(basename "$tsFileName")
+#
+#          # Rename the JavaScript file to the new TypeScript file
+#          jq --arg new_main "$new_main_field" '.main = $new_main' "$dir_path/package.json" > tmp_package.json
+#          mv "$dir_path/package.json" "$dir_path/package.json.bak"
+#          mv tmp_package.json "$dir_path/package.json"
+#          echo "Updated the 'main' field in package.json to $new_main_field"
+#      else
+#          echo "Main field in package.json doesn't match the provided JavaScript file."
+#      fi
+#  else
+#      echo "No package.json found in the same directory."
+#  fi
 
   # -------- End of package.json stuff ------------
 
@@ -82,12 +100,12 @@ for file in "${files[@]}"; do
   # Replace "../web-clone/web/" with "./"
   fileFromRoot=$(echo "$tsFileName" | sed "s%$repoPath%.%")
 
-  if pnpm -C "$repoPath" exec eslint --fix "$fileFromRoot" && echo "💅 Linted. Building..." && pnpm -C "$repoPath" PROJECT=nodeServices rsbuild build; then
+  if pnpm -C "$repoPath" exec eslint --fix "$fileFromRoot" && echo "💅 Linted. Building..." && PROJECT=nodeServices pnpm -C "$repoPath" exec rsbuild build; then
     echo "🎉 Successfully converted ${file}. Removing backup."
     rm "$file.bak"
-    if [ -f "$dir_path/package.json.bak" ]; then
-      rm "$dir_path/package.json.bak"
-    fi
+#    if [ -f "$dir_path/package.json.bak" ]; then
+#      rm "$dir_path/package.json.bak"
+#    fi
     ((successful++))
   else
     echo "❌ Type or lint errors after converting ${file}. Restoring backup."
@@ -95,11 +113,11 @@ for file in "${files[@]}"; do
     echo "🗑️ Removing $tsFileName file"
     rm $tsFileName
 
-    if [ -f "$dir_path/package.json.bak" ]; then
-      echo "🌸️ Restoring $dir_path/package.json"
-      rm "$dir_path/package.json"
-      mv "$dir_path/package.json.bak" "$dir_path/package.json"
-    fi
+#    if [ -f "$dir_path/package.json.bak" ]; then
+#      echo "🌸️ Restoring $dir_path/package.json"
+#      rm "$dir_path/package.json"
+#      mv "$dir_path/package.json.bak" "$dir_path/package.json"
+#    fi
 
     # -- Revert Snapshot files if necessary ---
     DIR_PATH=${tsFileName:h}

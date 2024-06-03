@@ -25,6 +25,7 @@
     "test": "jest",
     "convert": "yarn typescriptify convert --write --delete --useStrictAnyObjectType --useStrictAnyFunctionType --convertUnannotated",
     "convertFix": "yarn typescriptify fix --tsProps --autoImport",
+    "convertFixIgnore": "yarn typescriptify fix --tsProps --autoImport --autoSuppressErrors  --jiraSlug sc-39286 --removeUnused",
     "types": "tsc -b ."
   },
   "resolutions": {
